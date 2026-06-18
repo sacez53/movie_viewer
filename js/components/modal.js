@@ -248,7 +248,7 @@ export function initModal(appState) {
             e.preventDefault();
             const saveData = {
                 ...data,
-                status: statusSelect.value,
+                status: document.getElementById('movie-status').value,
                 isFavorite: isFav,
                 watchlistPriority: document.getElementById('movie-prio')?.value || 'normal',
                 personalRating: Number(document.getElementById('movie-rating')?.value || 0),
