@@ -46,61 +46,78 @@ export function initModal(appState) {
         const isSaved = !!savedMovie;
         const status = data.status || 'watchlist';
         const posterUrl = getImageUrl(data.poster_path);
+        const backdropUrl = data.backdrop_path ? getImageUrl(data.backdrop_path, 'w1280') : '';
         const genres = (data.genres || []).map(g => g.name || g).join(', ');
 
         modalBody.innerHTML = `
-            <div style="display:flex; gap:2rem; flex-wrap:wrap;">
-                <div style="flex: 1; min-width: 250px;">
-                    <img src="${posterUrl}" style="width:100%; border-radius:var(--radius-md); box-shadow:var(--shadow-lg);" alt="Affiche">
-                </div>
-                <div style="flex: 2; min-width: 300px; display:flex; flex-direction:column; gap:1rem;">
-                    <h2>${data.title || data.name}</h2>
-                    <p class="text-secondary">${data.release_date?.substring(0,4)} • ${genres} • TMDB: ${data.vote_average?.toFixed(1)}/10</p>
-                    <p>${data.overview || 'Aucun synopsis disponible.'}</p>
+            ${backdropUrl ? `<div class="modal-hero" style="background-image: url('${backdropUrl}')"></div>` : '<div class="modal-hero"></div>'}
+            
+            <div class="modal-body-content">
+                <img src="${posterUrl}" class="modal-poster" alt="Affiche">
+                
+                <div class="modal-info">
+                    <h2 style="font-size:2.5rem; margin-bottom:0.5rem; line-height:1.2;">${data.title || data.name}</h2>
+                    <p class="text-secondary" style="font-size:0.875rem; margin-bottom:1.5rem; display:flex; gap:0.5rem; align-items:center;">
+                        <span style="background:rgba(255,255,255,0.1); padding:2px 8px; border-radius:4px;">${data.release_date?.substring(0,4) || 'N/A'}</span>
+                        <span>•</span>
+                        <span>${genres}</span>
+                        <span>•</span>
+                        <span style="color:var(--color-accent-primary); display:flex; align-items:center; gap:4px;">
+                            <i data-lucide="star" style="width:14px; height:14px;" fill="currentColor"></i>
+                            ${data.vote_average?.toFixed(1) || '-'} / 10
+                        </span>
+                    </p>
                     
-                    <hr style="border:0; border-top:1px solid rgba(255,255,255,0.1); margin: 1rem 0;">
+                    <p style="font-size:1rem; line-height:1.6; color:rgba(255,255,255,0.85);">${data.overview || 'Aucun synopsis disponible.'}</p>
                     
-                    <form id="movie-details-form" style="display:flex; flex-direction:column; gap:1rem;">
-                        <div style="display:flex; gap:1rem; align-items:center;">
-                            <label><strong>Statut:</strong></label>
-                            <select id="movie-status" style="max-width: 200px;">
-                                <option value="watchlist" ${status === 'watchlist' ? 'selected' : ''}>À voir</option>
-                                <option value="seen" ${status === 'seen' ? 'selected' : ''}>Vu</option>
-                            </select>
+                    <form id="movie-details-form" class="glass-panel" style="margin-top:2rem; padding:1.5rem; border-radius:var(--radius-lg); display:flex; flex-direction:column; gap:1.5rem;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+                            <div class="form-group" style="margin-bottom:0; flex:1; min-width:200px;">
+                                <label>Statut du film</label>
+                                <select id="movie-status" style="background:rgba(0,0,0,0.4);">
+                                    <option value="watchlist" ${status === 'watchlist' ? 'selected' : ''}>Dans ma liste "À voir"</option>
+                                    <option value="seen" ${status === 'seen' ? 'selected' : ''}>Déjà vu</option>
+                                </select>
+                            </div>
                             
-                            <button type="button" id="toggle-fav-btn" class="btn btn-icon ${data.isFavorite ? 'text-accent' : ''}" title="Favori">
+                            <button type="button" id="toggle-fav-btn" class="btn btn-outline ${data.isFavorite ? 'text-accent' : ''}" style="gap:0.5rem;">
                                 <i data-lucide="heart" ${data.isFavorite ? 'fill="currentColor"' : ''}></i>
+                                <span>${data.isFavorite ? 'En favoris' : 'Marquer comme favori'}</span>
                             </button>
                         </div>
                         
                         <div id="watchlist-options" style="display: ${status === 'watchlist' ? 'block' : 'none'};">
-                            <label>Priorité :</label>
-                            <select id="movie-prio">
-                                <option value="low" ${data.watchlistPriority === 'low' ? 'selected' : ''}>Plus tard</option>
-                                <option value="normal" ${data.watchlistPriority === 'normal' ? 'selected' : ''}>Normale</option>
-                                <option value="high" ${data.watchlistPriority === 'high' ? 'selected' : ''}>Haute</option>
-                            </select>
-                        </div>
-
-                        <div id="seen-options" style="display: ${status === 'seen' ? 'block' : 'none'}; gap:1rem; flex-direction:column;">
-                            <div>
-                                <label>Ma Note (sur 10) :</label>
-                                <input type="number" id="movie-rating" min="0" max="10" value="${data.personalRating || ''}" placeholder="Ex: 8">
-                            </div>
-                            <div style="margin-top:1rem;">
-                                <label>Date de visionnage :</label>
-                                <input type="date" id="movie-view-date" value="${data.viewDate || ''}">
+                            <div class="form-group" style="margin-bottom:0;">
+                                <label>Priorité de visionnage</label>
+                                <select id="movie-prio" style="background:rgba(0,0,0,0.4);">
+                                    <option value="high" ${data.watchlistPriority === 'high' ? 'selected' : ''}>🔥 Priorité Haute</option>
+                                    <option value="normal" ${data.watchlistPriority === 'normal' ? 'selected' : ''}>📅 Normale</option>
+                                    <option value="low" ${data.watchlistPriority === 'low' ? 'selected' : ''}>⏳ Plus tard</option>
+                                </select>
                             </div>
                         </div>
 
-                        <div>
-                            <label>Commentaire personnel :</label>
-                            <textarea id="movie-comment" placeholder="Qu'avez-vous pensé de ce film...">${data.comment || ''}</textarea>
+                        <div id="seen-options" style="display: ${status === 'seen' ? 'flex' : 'none'}; gap:1rem; flex-wrap:wrap;">
+                            <div class="form-group" style="margin-bottom:0; flex:1;">
+                                <label>Ma Note (sur 10)</label>
+                                <input type="number" id="movie-rating" min="0" max="10" step="0.5" value="${data.personalRating || ''}" placeholder="Ex: 8.5" style="background:rgba(0,0,0,0.4);">
+                            </div>
+                            <div class="form-group" style="margin-bottom:0; flex:1;">
+                                <label>Date de visionnage</label>
+                                <input type="date" id="movie-view-date" value="${data.viewDate || ''}" style="background:rgba(0,0,0,0.4);">
+                            </div>
                         </div>
 
-                        <div style="display:flex; gap:1rem; margin-top:1rem;">
-                            <button type="submit" class="btn btn-primary" style="flex:1;"><i data-lucide="save"></i> ${isSaved ? 'Mettre à jour' : 'Ajouter à ma bibliothèque'}</button>
-                            ${isSaved ? `<button type="button" id="remove-movie-btn" class="btn btn-outline" style="color:var(--color-error); border-color:var(--color-error);"><i data-lucide="trash-2"></i> Retirer</button>` : ''}
+                        <div class="form-group" style="margin-bottom:0;">
+                            <label>Commentaire personnel</label>
+                            <textarea id="movie-comment" placeholder="Qu'avez-vous pensé de ce film... ?" style="background:rgba(0,0,0,0.4);">${data.comment || ''}</textarea>
+                        </div>
+
+                        <div style="display:flex; gap:1rem; margin-top:0.5rem;">
+                            <button type="submit" class="btn btn-primary" style="flex:2; justify-content:center;">
+                                <i data-lucide="save"></i> ${isSaved ? 'Enregistrer les modifications' : 'Ajouter à ma bibliothèque'}
+                            </button>
+                            ${isSaved ? `<button type="button" id="remove-movie-btn" class="btn btn-outline" style="flex:1; justify-content:center; color:var(--color-error); border-color:rgba(239, 68, 68, 0.3);"><i data-lucide="trash-2"></i> Retirer</button>` : ''}
                         </div>
                     </form>
                 </div>
