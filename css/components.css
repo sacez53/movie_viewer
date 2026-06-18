@@ -268,6 +268,7 @@ textarea {
     gap: var(--spacing-6);
     flex-wrap: wrap;
     z-index: 2;
+    align-items: flex-start; /* Prevent stretching of children like the poster */
 }
 
 .modal-poster {
@@ -277,6 +278,8 @@ textarea {
     border: 1px solid rgba(255,255,255,0.1);
     background: var(--color-bg-elevated);
     flex-shrink: 0;
+    object-fit: cover;
+    aspect-ratio: 2 / 3;
 }
 
 .modal-info {
@@ -289,7 +292,7 @@ textarea {
     .modal-hero { height: 200px; }
     .modal-body-content { margin-top: -60px; justify-content: center; text-align: center; }
     .modal-poster { width: 150px; }
-    .modal-info { padding-top: 20px; }
+    .modal-info { padding-top: 20px; min-width: 100%; }
 }
 
 /* Skeletons */
@@ -326,13 +329,14 @@ textarea {
 .star-rating-container {
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 2px;
+    flex-wrap: wrap;
 }
 
 .star-btn {
     background: transparent;
     border: none;
-    padding: 0;
+    padding: 2px;
     cursor: pointer;
     color: rgba(255, 255, 255, 0.2);
     transition: color 0.2s, transform 0.2s;
@@ -340,8 +344,8 @@ textarea {
 }
 
 .star-btn svg {
-    width: 28px;
-    height: 28px;
+    width: 24px;
+    height: 24px;
     transition: fill 0.2s;
 }
 

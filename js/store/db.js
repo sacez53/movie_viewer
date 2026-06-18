@@ -19,17 +19,19 @@ export async function saveMovie(movieData) {
     if (!userMoviesRef) throw new Error("Utilisateur non connecté");
     const movieRef = ref(db, `users/${currentUser.uid}/movies/${movieData.id}`);
     
-    // Structure par défaut si nouveau
+    // Firebase interdit strictement les valeurs "undefined", nous mettons des fallbacks
     const dataToSave = {
         id: movieData.id,
-        title: movieData.title,
-        poster_path: movieData.poster_path,
-        release_date: movieData.release_date,
-        vote_average: movieData.vote_average,
+        title: movieData.title || movieData.name || 'Sans titre',
+        poster_path: movieData.poster_path || '',
+        backdrop_path: movieData.backdrop_path || '',
+        overview: movieData.overview || '',
+        release_date: movieData.release_date || '',
+        vote_average: movieData.vote_average || 0,
         genres: movieData.genres || movieData.genre_ids || [],
         
         // Données utilisateur
-        status: movieData.status || 'watchlist', // 'seen' or 'watchlist'
+        status: movieData.status || 'watchlist',
         watchlistPriority: movieData.watchlistPriority || 'normal',
         personalRating: movieData.personalRating || 0,
         comment: movieData.comment || '',
@@ -38,6 +40,13 @@ export async function saveMovie(movieData) {
         addedAt: movieData.addedAt || Date.now(),
         updatedAt: Date.now()
     };
+
+    // Nettoyer toute éventuelle valeur undefined résiduelle
+    Object.keys(dataToSave).forEach(key => {
+        if (dataToSave[key] === undefined) {
+            dataToSave[key] = null;
+        }
+    });
 
     await set(movieRef, dataToSave);
     return dataToSave;
