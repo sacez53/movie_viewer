@@ -71,16 +71,21 @@ export function initModal(appState) {
                     <p style="font-size:1rem; line-height:1.6; color:rgba(255,255,255,0.85);">${data.overview || 'Aucun synopsis disponible.'}</p>
                     
                     <form id="movie-details-form" class="glass-panel" style="margin-top:2rem; padding:1.5rem; border-radius:var(--radius-lg); display:flex; flex-direction:column; gap:1.5rem;">
-                        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
-                            <div class="form-group" style="margin-bottom:0; flex:1; min-width:200px;">
+                        <div style="display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:1rem;">
+                            <div class="form-group" style="margin-bottom:0; flex:1; min-width:250px;">
                                 <label>Statut du film</label>
-                                <select id="movie-status" style="background:rgba(0,0,0,0.4);">
-                                    <option value="watchlist" ${status === 'watchlist' ? 'selected' : ''}>Dans ma liste "À voir"</option>
-                                    <option value="seen" ${status === 'seen' ? 'selected' : ''}>Déjà vu</option>
-                                </select>
+                                <div class="segmented-control" id="status-control">
+                                    <button type="button" class="segment-btn ${status === 'watchlist' ? 'active' : ''}" data-val="watchlist">
+                                        <i data-lucide="bookmark"></i> À voir
+                                    </button>
+                                    <button type="button" class="segment-btn ${status === 'seen' ? 'active' : ''}" data-val="seen">
+                                        <i data-lucide="check-circle"></i> Déjà vu
+                                    </button>
+                                </div>
+                                <input type="hidden" id="movie-status" value="${status}">
                             </div>
                             
-                            <button type="button" id="toggle-fav-btn" class="btn btn-outline ${data.isFavorite ? 'text-accent' : ''}" style="gap:0.5rem;">
+                            <button type="button" id="toggle-fav-btn" class="btn btn-outline ${data.isFavorite ? 'text-accent' : ''}" style="gap:0.5rem; height: 42px;">
                                 <i data-lucide="heart" ${data.isFavorite ? 'fill="currentColor"' : ''}></i>
                                 <span>${data.isFavorite ? 'En favoris' : 'Marquer comme favori'}</span>
                             </button>
@@ -89,22 +94,31 @@ export function initModal(appState) {
                         <div id="watchlist-options" style="display: ${status === 'watchlist' ? 'block' : 'none'};">
                             <div class="form-group" style="margin-bottom:0;">
                                 <label>Priorité de visionnage</label>
-                                <select id="movie-prio" style="background:rgba(0,0,0,0.4);">
-                                    <option value="high" ${data.watchlistPriority === 'high' ? 'selected' : ''}>🔥 Priorité Haute</option>
-                                    <option value="normal" ${data.watchlistPriority === 'normal' ? 'selected' : ''}>📅 Normale</option>
-                                    <option value="low" ${data.watchlistPriority === 'low' ? 'selected' : ''}>⏳ Plus tard</option>
-                                </select>
+                                <div class="segmented-control" id="prio-control">
+                                    <button type="button" class="segment-btn ${data.watchlistPriority === 'high' ? 'active' : ''}" data-val="high">🔥 Haute</button>
+                                    <button type="button" class="segment-btn ${data.watchlistPriority === 'normal' || !data.watchlistPriority ? 'active' : ''}" data-val="normal">📅 Normale</button>
+                                    <button type="button" class="segment-btn ${data.watchlistPriority === 'low' ? 'active' : ''}" data-val="low">⏳ Plus tard</button>
+                                </div>
+                                <input type="hidden" id="movie-prio" value="${data.watchlistPriority || 'normal'}">
                             </div>
                         </div>
 
                         <div id="seen-options" style="display: ${status === 'seen' ? 'flex' : 'none'}; gap:1rem; flex-wrap:wrap;">
-                            <div class="form-group" style="margin-bottom:0; flex:1;">
-                                <label>Ma Note (sur 10)</label>
-                                <input type="number" id="movie-rating" min="0" max="10" step="0.5" value="${data.personalRating || ''}" placeholder="Ex: 8.5" style="background:rgba(0,0,0,0.4);">
+                            <div class="form-group" style="margin-bottom:0; flex:1; min-width:250px;">
+                                <label>Ma Note</label>
+                                <div class="star-rating-container" id="star-rating-ui">
+                                    ${[1,2,3,4,5,6,7,8,9,10].map(val => `
+                                        <button type="button" class="star-btn ${data.personalRating >= val ? 'active' : ''}" data-val="${val}">
+                                            <i data-lucide="star" style="width:20px; height:20px;" ${data.personalRating >= val ? 'fill="currentColor"' : ''}></i>
+                                        </button>
+                                    `).join('')}
+                                    <span class="rating-display" id="rating-display-text">${data.personalRating ? data.personalRating + '/10' : '-'}</span>
+                                </div>
+                                <input type="hidden" id="movie-rating" value="${data.personalRating || 0}">
                             </div>
                             <div class="form-group" style="margin-bottom:0; flex:1;">
                                 <label>Date de visionnage</label>
-                                <input type="date" id="movie-view-date" value="${data.viewDate || ''}" style="background:rgba(0,0,0,0.4);">
+                                <input type="date" id="movie-view-date" value="${data.viewDate || ''}" style="background:rgba(0,0,0,0.4); border-radius:var(--radius-md);">
                             </div>
                         </div>
 
@@ -114,10 +128,10 @@ export function initModal(appState) {
                         </div>
 
                         <div style="display:flex; gap:1rem; margin-top:0.5rem;">
-                            <button type="submit" class="btn btn-primary" style="flex:2; justify-content:center;">
+                            <button type="submit" class="btn btn-primary" style="flex:2; justify-content:center; height:48px;">
                                 <i data-lucide="save"></i> ${isSaved ? 'Enregistrer les modifications' : 'Ajouter à ma bibliothèque'}
                             </button>
-                            ${isSaved ? `<button type="button" id="remove-movie-btn" class="btn btn-outline" style="flex:1; justify-content:center; color:var(--color-error); border-color:rgba(239, 68, 68, 0.3);"><i data-lucide="trash-2"></i> Retirer</button>` : ''}
+                            ${isSaved ? `<button type="button" id="remove-movie-btn" class="btn btn-outline" style="flex:1; justify-content:center; height:48px; color:var(--color-error); border-color:rgba(239, 68, 68, 0.3);"><i data-lucide="trash-2"></i> Retirer</button>` : ''}
                         </div>
                     </form>
                 </div>
@@ -127,14 +141,32 @@ export function initModal(appState) {
 
         // Logic
         const form = document.getElementById('movie-details-form');
-        const statusSelect = document.getElementById('movie-status');
+        const statusInput = document.getElementById('movie-status');
+        const prioInput = document.getElementById('movie-prio');
         const watchOpts = document.getElementById('watchlist-options');
         const seenOpts = document.getElementById('seen-options');
         const favBtn = document.getElementById('toggle-fav-btn');
         let isFav = data.isFavorite || false;
 
-        statusSelect.addEventListener('change', (e) => {
-            if (e.target.value === 'seen') {
+        // Segmented Controls Logic
+        function setupSegmentedControl(containerId, inputId, onChange) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            const btns = container.querySelectorAll('.segment-btn');
+            const input = document.getElementById(inputId);
+            
+            btns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    btns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    input.value = btn.dataset.val;
+                    if (onChange) onChange(btn.dataset.val);
+                });
+            });
+        }
+
+        setupSegmentedControl('status-control', 'movie-status', (newStatus) => {
+            if (newStatus === 'seen') {
                 watchOpts.style.display = 'none';
                 seenOpts.style.display = 'flex';
             } else {
@@ -143,17 +175,59 @@ export function initModal(appState) {
             }
         });
 
+        setupSegmentedControl('prio-control', 'movie-prio');
+
         favBtn.addEventListener('click', () => {
             isFav = !isFav;
             if (isFav) {
                 favBtn.classList.add('text-accent');
                 favBtn.innerHTML = `<i data-lucide="heart" fill="currentColor"></i>`;
+                favBtn.querySelector('span').textContent = 'En favoris';
             } else {
                 favBtn.classList.remove('text-accent');
                 favBtn.innerHTML = `<i data-lucide="heart"></i>`;
+                favBtn.querySelector('span').textContent = 'Marquer comme favori';
             }
             refreshIcons();
         });
+
+        // Star Rating Logic
+        const starBtns = document.querySelectorAll('.star-btn');
+        const ratingInput = document.getElementById('movie-rating');
+        const ratingDisplay = document.getElementById('rating-display-text');
+        
+        let currentRating = ratingInput ? parseInt(ratingInput.value) || 0 : 0;
+
+        starBtns.forEach(btn => {
+            btn.addEventListener('mouseenter', (e) => {
+                const hoverVal = parseInt(e.currentTarget.dataset.val);
+                updateStarsUI(hoverVal);
+            });
+            
+            btn.addEventListener('mouseleave', () => {
+                updateStarsUI(currentRating);
+            });
+            
+            btn.addEventListener('click', (e) => {
+                currentRating = parseInt(e.currentTarget.dataset.val);
+                ratingInput.value = currentRating;
+                ratingDisplay.textContent = currentRating + '/10';
+                updateStarsUI(currentRating);
+            });
+        });
+
+        function updateStarsUI(val) {
+            starBtns.forEach(btn => {
+                const btnVal = parseInt(btn.dataset.val);
+                if (btnVal <= val) {
+                    btn.classList.add('active');
+                    btn.querySelector('i').setAttribute('fill', 'currentColor');
+                } else {
+                    btn.classList.remove('active');
+                    btn.querySelector('i').removeAttribute('fill');
+                }
+            });
+        }
 
         const removeBtn = document.getElementById('remove-movie-btn');
         if (removeBtn) {
